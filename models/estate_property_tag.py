@@ -6,4 +6,5 @@ class EstatePropertyTag(models.Model):
     _description = "Real Estate Property Tag Model"
 
     name = fields.Char(required=True)
-    property_ids = fields.Many2many('estate.properties', 'property_tag_ids')
+    color = fields.Integer(string='color')
+    property_ids = fields.Many2many('estate.properties','property_tag_id', string='Properties')
