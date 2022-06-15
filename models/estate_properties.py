@@ -42,15 +42,7 @@ class RealEstateProperties(models.Model):
     property_type_id = fields.Many2one(
         'estate.property.type', string='Type')
 
-    seller = fields.Many2one("res.users", string="Seller",
-                             default=lambda self: self.env.user)
-    buyer = fields.Many2one("res.partner", string="Buyer", copy=False)
-
-
-# the user picks a type name which the ORM takes and links back to the
-# Many2one ID that links to the One2Many id in the types model
-# which then takes the record at that ID and extends the properties
-# table with the info that the types model has.
-# the user can then pick a type from the list of types
-# and the properties table will be extended with the info from the
-# types model.
+    seller_id = fields.Many2one("res.users", string="Seller", default=lambda
+                                self: self.env.user)
+    buyer_id = fields.Many2one("res.partner", string="Buyer", copy=False)
+    property_tag_ids = fields.Many2many('estate.property.tag', string='Tags')

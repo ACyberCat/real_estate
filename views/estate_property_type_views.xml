@@ -11,9 +11,38 @@
         <field name="name">estate.property.type.tree</field>
         <field name="model">estate.property.type</field>
         <field name="arch" type="xml">
-            <tree string="Offers">
+            <tree string="Tree">
                 <field name="name" />
             </tree>
+        </field>
+    </record>
+    <!-- Form View (form view) -->
+    <record id="estate_property_type_view_form" model="ir.ui.view">
+        <field name="name">estate.property.type.form</field>
+        <field name="model">estate.property.type</field>
+        <field name="arch" type="xml">
+            <form string="Form">
+                <sheet>
+                    <h1>
+                        Property Type
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="name" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- Search View -->
+    <record id="estate_property_type_search_view" model="ir.ui.view">
+        <field name="name">estate.property.type.search</field>
+        <field name="model">estate.property.type</field>
+        <field name="arch" type="xml">
+            <search string="Search">
+                <field name="name" />
+            </search>
         </field>
     </record>
 </odoo>

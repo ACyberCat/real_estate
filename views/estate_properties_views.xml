@@ -41,37 +41,52 @@
                         <group>
                             <field name="postcode" />
                         </group>
-                    </group>
-                    <group>
                         <group optional="hidden">
                             <field string="Available From" name="date_availability" />
                         </group>
                         <group>
-                            <field name="selling_price" />
+                            <group>
+                                <field name="selling_price" />
+                            </group>
+                            <group>
+                                <field name="expected_price" />
+                            </group>
                         </group>
                     </group>
                     <notebook>
                         <page string="Description">
                             <group>
-                                <field name="description" />
+                                <group>
+                                    <field name="description" />
+                                </group>
+                                <group>
+                                    <field name="bedrooms" />
+                                </group>
+                                <group>
+                                    <field name="facades" />
+                                </group>
+                                <group>
+                                    <field name="garage" />
+                                </group>
+                                <group>
+                                    <field name="garden" />
+                                </group>
+                                <group attrs="{'invisible': [('garden', '=', False)]}">
+                                    <field string="Garden Area (sqm)" name="garden_area" />
+                                </group>
+                                <group attrs="{'invisible': [('garden', '=', False)]}">
+                                    <field name="garden_orientation" />
+                                </group>
                             </group>
+                        </page>
+                        <page string="Other Info">
                             <group>
-                                <field name="bedrooms" />
-                            </group>
-                            <group>
-                                <field name="facades" />
-                            </group>
-                            <group>
-                                <field name="garage" />
-                            </group>
-                            <group>
-                                <field name="garden" />
-                            </group>
-                            <group attrs="{'invisible': [('garden', '=', False)]}">
-                                <field string="Garden Area (sqm)" name="garden_area" />
-                            </group>
-                            <group attrs="{'invisible': [('garden', '=', False)]}">
-                                <field name="garden_orientation" />
+                                <group>
+                                    <field name="seller_id" />
+                                </group>
+                                <group>
+                                    <field name="buyer_id" />
+                                </group>
                             </group>
                         </page>
                     </notebook>
