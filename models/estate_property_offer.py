@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 class EstatePropertyOffer(models.Model):
     _name = "estate.property.offer"
     _description = "Real Estate Property Offer Model"
+    _order = "price desc"
     _sql_constraints = [
         ('name_uniq', 'unique(name)',
          'The name of the property must be unique!'),
@@ -29,7 +30,8 @@ class EstatePropertyOffer(models.Model):
 
     def action_accept(self):
         for record in self:
-            if record.property_id.state != 'cancelled' and record.property_id.state != 'sold':
+            if (record.property_id.state != 'cancelled'
+                    and record.property_id.state != 'sold'):
                 record.status = 'accepted'
                 record.property_id.state = 'sold'
                 record.property_id.buyer_id = record.partner_id
@@ -44,7 +46,7 @@ class EstatePropertyOffer(models.Model):
     def action_refuse(self):
         for record in self:
             if (record.property_id.state != 'cancelled'
-                and record.property_id.state != 'sold'):
+                    and record.property_id.state != 'sold'):
                 record.status = 'refused'
                 record.property_id.state = 'offer recieved'
                 record.property_id.buyer_id = False

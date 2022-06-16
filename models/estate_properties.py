@@ -8,6 +8,7 @@ three_months = fields.Date.today() + relativedelta(months=+3)
 class RealEstateProperties(models.Model):
     _name = "estate.properties"
     _description = "Real Estate Properties Model"
+    _order = "id desc"
     _sql_constraints = [
         ('name_uniq', 'unique(name)',
          'The name of the property must be unique!'),
@@ -106,8 +107,9 @@ class RealEstateProperties(models.Model):
                 record.buyer_id = self.env.user.partner_id
         return True
 
-    @api.constraints('selling_price', 'expected_price'):
+    @api.constrains('selling_price', 'expected_price')
     def _check_price(self):
-        if self.selling_price < (self.expected_price*0.9):
+        if (self.selling_price < (self.expected_price*0.9)
+                and self.selling_price > 0):
             raise exceptions.ValidationError(
-                "Selling price must be greater than 90%\ of expected price")
+                "Selling price must be greater than 90% of expected price")
