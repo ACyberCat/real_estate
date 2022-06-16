@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import exceptions, api, fields, models
 from dateutil.relativedelta import relativedelta
 
 
@@ -8,6 +8,15 @@ three_months = fields.Date.today() + relativedelta(months=+3)
 class RealEstateProperties(models.Model):
     _name = "estate.properties"
     _description = "Real Estate Properties Model"
+    _sql_constraints = [
+        ('name_uniq', 'unique(name)',
+         'The name of the property must be unique!'),
+        ('selling_price_positive', 'CHECK(selling_price > 0)',
+         'The selling price must be positive!'),
+        ('expected_price_positive', 'CHECK(expected_price > 0)',
+         'The expected price must be positive!'),
+        ('area_positive', 'CHECK(area > 0)', 'The area must be positive!'),
+    ]
 
     name = fields.Char(required=True)
     active = fields.Boolean(default=True)
@@ -51,6 +60,11 @@ class RealEstateProperties(models.Model):
     property_offer_ids = fields.One2many('estate.property.offer',
                                          'property_id', string="Offers")
 
+    @api.onchange('property_offer_ids')
+    def _onchange_property_offer_ids(self):
+        if self.state == 'new' and len(self.property_offer_ids) > 0:
+            self.state = 'offer recieved'
+
     @api.depends("garden_area", "living_area")
     def _compute_total_area(self):
         for record in self:
@@ -73,3 +87,27 @@ class RealEstateProperties(models.Model):
                     "price"))
             else:
                 record.best_offer = 0
+
+    def action_cancel(self):
+        if self.state != "sold":
+            self.state = 'cancelled'
+        else:
+            raise exceptions.UserError(
+                "Cannot cancel a sold property")
+        return True
+
+    def action_sell(self):
+        for record in self:
+            if record.state == 'cancelled':
+                raise exceptions.UserError(
+                    "Cannot sell a cancelled property")
+            else:
+                record.state = 'sold'
+                record.buyer_id = self.env.user.partner_id
+        return True
+
+    @api.constraints('selling_price', 'expected_price'):
+    def _check_price(self):
+        if self.selling_price < (self.expected_price*0.9):
+            raise exceptions.ValidationError(
+                "Selling price must be greater than 90%\ of expected price")
