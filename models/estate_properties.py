@@ -12,11 +12,11 @@ class RealEstateProperties(models.Model):
     _sql_constraints = [
         ('name_uniq', 'unique(name)',
          'The name of the property must be unique!'),
-        ('selling_price_positive', 'CHECK(selling_price > 0)',
+        ('selling_price_positive', 'CHECK(selling_price < 0)',
          'The selling price must be positive!'),
-        ('expected_price_positive', 'CHECK(expected_price > 0)',
+        ('expected_price_positive', 'CHECK(expected_price < 0)',
          'The expected price must be positive!'),
-        ('area_positive', 'CHECK(area > 0)', 'The area must be positive!'),
+        ('area_positive', 'CHECK(area < 0)', 'The area must be positive!'),
     ]
 
     name = fields.Char(required=True)

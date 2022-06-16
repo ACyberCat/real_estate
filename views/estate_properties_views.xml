@@ -11,7 +11,8 @@
         <field name="name">estate.properties.tree</field>
         <field name="model">estate.properties</field>
         <field name="arch" type="xml">
-            <tree string="Properties">
+            <tree string="Properties" decoration-success="state=='offer recieved' or state=='sold'" decoration-muted="state=='cancelled'" decoration-bf="state=='sold'" decoration-info="state=='new'">
+                <field name="context">{'search_default_opportunity': True, 'search_default_current': True}</field>
                 <field name="name" />
                 <field name="property_type_id" attrs="{'readonly': [('id', '!=', False)]}" />
                 <field name="postcode" />
@@ -21,6 +22,7 @@
                 <field name="facades" optional="hidden" />
                 <field name="garage" optional="hidden" />
                 <field name="garden" optional="hidden" />
+                <field name="state" optional="hidden" />
                 <field name="garden_area" optional="hidden" />
                 <field name="garden_orientation" optional="hidden" />
                 <field name="expected_price" />
@@ -37,7 +39,7 @@
                 <header>
                     <button name="action_sell" type="object" string="Sold" />
                     <button name="action_cancel" type="object" string="Cancel" />
-                    <field name="state" widget="statusbar" statusbar_visible="new,offer recieved,sold" attrs="{'invisible':['and',('state', '=', 'cancelled')]}" />
+                    <field name="state" widget="statusbar" statusbar_visible="new,offer recieved,sold" attrs="{'invisible':[('state', '=', 'cancelled')]}" />
                     <field name="state" widget="statusbar" statusbar_visible="cancelled" attrs="{'invisible': [('state', '!=', 'cancelled')]}" />
                 </header>
                 <sheet>
@@ -101,7 +103,7 @@
                         </page>
                         <page string="Offers">
                             <field name="property_offer_ids" attrs="{'readonly':['|',('state','=','sold'),('state','=','canceled')]}">
-                                <tree string="Offers" editable="top" decoration-success="status=='sold'">
+                                <tree string="Offers" editable="bottom" decoration-muted="status==''" decoration-success="status=='accepted'" decoration-danger="status=='refused'">
                                     <field name="price" />
                                     <field name="partner_id" />
                                     <field name="validity" />
@@ -143,6 +145,7 @@
                 <separator />
                 <filter string="Available Properties" name='state' domain="['|',
                 ('state', '=', 'new'),('state', '=', 'offer recieved')]" />
+                <filter string="Property State" name="state" domain="[('state', '=', 'new')]" />
                 <group expand="1" string="Group By">
                     <filter string="Postcode" name="postcode" context="{'group_by':'postcode'}" />
                 </group>

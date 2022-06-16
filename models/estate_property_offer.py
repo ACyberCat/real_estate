@@ -9,7 +9,7 @@ class EstatePropertyOffer(models.Model):
     _sql_constraints = [
         ('name_uniq', 'unique(name)',
          'The name of the property must be unique!'),
-        ('price_positive', 'CHECK(price > 0)',
+        ('price_positive', 'CHECK(price < 0)',
          'The offer price must be positive!'),
     ]
 
@@ -50,7 +50,7 @@ class EstatePropertyOffer(models.Model):
                 record.status = 'refused'
                 record.property_id.state = 'offer recieved'
                 record.property_id.buyer_id = False
-                record.property_id.selling_price = False
+                record.property_id.selling_price = 0
             else:
                 raise exceptions.ValidationError(
                     "This property is cancelled or sold. "
