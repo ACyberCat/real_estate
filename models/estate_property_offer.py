@@ -9,12 +9,13 @@ class EstatePropertyOffer(models.Model):
     _sql_constraints = [
         ('name_uniq', 'unique(name)',
          'The name of the property must be unique!'),
-        ('price_positive', 'CHECK(price < 0)',
+        ('price_positive', 'CHECK(price >= 0)',
          'The offer price must be positive!'),
     ]
 
     price = fields.Float(required=True)
     partner_id = fields.Many2one("res.partner", string="Buyer", copy=False)
+    partner_name = fields.Char(related="partner_id.name", string="Buyer")
     status = fields.Selection(
         string='Status', copy=False,
         selection=[

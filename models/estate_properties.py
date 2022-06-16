@@ -12,9 +12,9 @@ class RealEstateProperties(models.Model):
     _sql_constraints = [
         ('name_uniq', 'unique(name)',
          'The name of the property must be unique!'),
-        ('selling_price_positive', 'CHECK(selling_price < 0)',
+        ('selling_price_positive', 'CHECK(selling_price >= 0)',
          'The selling price must be positive!'),
-        ('expected_price_positive', 'CHECK(expected_price < 0)',
+        ('expected_price_positive', 'CHECK(expected_price >= 0)',
          'The expected price must be positive!'),
         ('area_positive', 'CHECK(area < 0)', 'The area must be positive!'),
     ]
@@ -113,3 +113,20 @@ class RealEstateProperties(models.Model):
                 and self.selling_price > 0):
             raise exceptions.ValidationError(
                 "Selling price must be greater than 90% of expected price")
+
+    @api.constrains('property_id', 'price')
+    def _check_offer_price(self):
+        for record in self:
+            if record.price < record.property_id.best_offer:
+                raise exceptions.ValidationError(
+                    "Offer price must be greater than the best offer")
+            else:
+                return super().create()
+
+    @api.ondelete(at_uninstall=False)
+    def unlink(self):
+        for record in self:
+            if record.state != 'new' and record.state != 'cancelled':
+                raise exceptions.UserError(
+                    "Cannot delete a property that is not new or cancelled")
+        return super().unlink()
