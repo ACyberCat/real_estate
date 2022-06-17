@@ -1,14 +1,19 @@
 from odoo import exceptions, api, fields, models
 from dateutil.relativedelta import relativedelta
 
-
+# calculate the default value of date_availability
 three_months = fields.Date.today() + relativedelta(months=+3)
 
 
+# create a new model estate.properties
 class RealEstateProperties(models.Model):
+    # database table name
     _name = "estate.properties"
+    # description of the model
     _description = "Real Estate Properties Model"
+    # order of viewing the records
     _order = "id desc"
+    # database constraints
     _sql_constraints = [
         ('name_uniq', 'unique(name)',
          'The name of the property must be unique!'),
@@ -19,6 +24,7 @@ class RealEstateProperties(models.Model):
         ('area_positive', 'CHECK(area < 0)', 'The area must be positive!'),
     ]
 
+    # fields of the model
     name = fields.Char(required=True)
     active = fields.Boolean(default=True)
     description = fields.Text()
@@ -50,14 +56,19 @@ class RealEstateProperties(models.Model):
             ('cancelled', 'Cancelled')
         ],
         default='new')
+    # manytoone relationship with estate.property.type
     property_type_id = fields.Many2one(
         'estate.property.type', string='Type')
     best_offer = fields.Float(string="Best Offer", default=0,
                               compute="_compute_best_offer")
+    # manytoone relationship with res.users
     seller_id = fields.Many2one("res.users", string="Seller", default=lambda
                                 self: self.env.user)
+    # manytoone relationship with res.partner
     buyer_id = fields.Many2one("res.partner", string="Buyer", copy=False)
+    # manytomany relationship with estate.property.tags
     property_tag_ids = fields.Many2many('estate.property.tag')
+    # one2many relationship with estate.property.offer
     property_offer_ids = fields.One2many('estate.property.offer',
                                          'property_id', string="Offers")
 
@@ -67,11 +78,14 @@ class RealEstateProperties(models.Model):
             self.state = 'offer recieved'
 
     @api.depends("garden_area", "living_area")
+    # compute the total area of the property
     def _compute_total_area(self):
         for record in self:
             record.total_area = record.living_area + record.garden_area
 
     @api.onchange("garden")
+    # set the default value of garden_area to 0 if garden is False
+    # change the default value of garden_orientation to None if garden is False
     def _onchange_garden(self):
         if self.garden:
             self.garden_area = 10
@@ -81,6 +95,7 @@ class RealEstateProperties(models.Model):
             self.garden_orientation = False
 
     @api.depends("property_offer_ids")
+    # compute the best offer of the property
     def _compute_best_offer(self):
         for record in self:
             if record.property_offer_ids:
@@ -89,6 +104,7 @@ class RealEstateProperties(models.Model):
             else:
                 record.best_offer = 0
 
+    # cancel the property
     def action_cancel(self):
         if self.state != "sold":
             self.state = 'cancelled'
@@ -97,6 +113,7 @@ class RealEstateProperties(models.Model):
                 "Cannot cancel a sold property")
         return True
 
+    # sell the property
     def action_sell(self):
         for record in self:
             if record.state == 'cancelled':
@@ -108,6 +125,7 @@ class RealEstateProperties(models.Model):
         return True
 
     @api.constrains('selling_price', 'expected_price')
+    # check if the selling price is greater than the expected price
     def _check_price(self):
         if (self.selling_price < (self.expected_price*0.9)
                 and self.selling_price > 0):
@@ -115,6 +133,7 @@ class RealEstateProperties(models.Model):
                 "Selling price must be greater than 90% of expected price")
 
     @api.constrains('property_id', 'price')
+    # check if the price is greater than the best offer
     def _check_offer_price(self):
         for record in self:
             if record.price < record.property_id.best_offer:
@@ -123,10 +142,9 @@ class RealEstateProperties(models.Model):
             else:
                 return super().create()
 
-    @api.ondelete(at_uninstall=False)
-    def unlink(self):
-        for record in self:
-            if record.state != 'new' and record.state != 'cancelled':
-                raise exceptions.UserError(
-                    "Cannot delete a property that is not new or cancelled")
-        return super().unlink()
+        # @api.ondelete(at_uninstall=False)
+        # def unlink(self):
+        #     if self.state != 'new' and self.state != 'cancelled':
+        #         raise exceptions.UserError(
+        #             "Cannot delete a property that is not new or cancelled")
+        #     return super().unlink()

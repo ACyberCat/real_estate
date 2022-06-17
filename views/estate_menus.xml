@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Menu items in the navbar -->
     <menuitem id="estate_properties_menu_root">
         <menuitem id="estate_properties_menu" name="Advertisements" action="estate_properties_model_action" />
         <menuitem id="settings_menu" name="Settings">
