@@ -696,4 +696,92 @@ In Odoo, the first mechanism is by far the most used. In our case, we want to ad
 >    new_field = fields.Char(string="New Field")
 > ```
 
+###### _note: the `_inherit` attribute is the name of the model to inherit from. It can be a string or a list of strings._
+
+###### _note: By convention, each inherited model is defined in its own Python file. In our example, it would be `models/inherited_model.py`._
+
+### View Inheritance
+
+Instead of modifying existing views in place (by overwriting them), Odoo provides view inheritance where children ‘extension’ views are applied on top of root views. These extension can both add and remove content from their parent view.
+
+An extension view references its parent using the `inherit_id` field. Instead of a single view, its `arch` field contains a number of `xpath` elements that select and alter the content of their parent view:
+
+> ```xml
+> <record id="inherited_model_view_form" model="ir.ui.view">
+>    <field name="name">inherited.model.form.inherit.test</field>
+>    <field name="model">inherited.model</field>
+>    <field name="inherit_id" ref="inherited.inherited_model_view_form"/>
+>    <field name="arch" type="xml">
+>        <!-- find field description and add the field
+>             new_field after it -->
+>        <xpath expr="//field[@name='description']" position="after">
+>          <field name="new_field"/>
+>        </xpath>
+>    </field>
+> </record>
+> ```
+
+> - **expr**
+>   An XPath expression selecting a single element in the parent view. Raises an error if it matches no element or more than one
+> - **position**
+>   Operation to apply to the matched element:
+> - **inside**
+>   appends xpath’s body to the end of the matched element
+> - **replace**
+>   replaces the matched element with the xpath’s body, replacing any $0 node occurrence in the new body with the original element
+> - **before**
+>   inserts the xpath’s body as a sibling before the matched element
+> - **after**
+>   inserts the xpaths’s body as a sibling after the matched element
+> - **attributes**
+>   alters the attributes of the matched element using the special attribute elements in the xpath’s body
+
+When matching a single element, the position attribute can be set directly on the element to be found. Both inheritances below have the same result.
+
+> ```xml
+> <xpath expr="//field[@name='description']" position="after">
+>    <field name="idea_ids" />
+> </xpath>
+>
+> <field name="description" position="after">
+>    <field name="idea_ids" />
+> </field>
+> ```
+
+---
+
+## Chapter 14: Interact With Other Modules
+
+### Link Module
+
+The common approach for such use cases is to create a ‘link’ module. In our case, the module would depend on `estate` and `account` and would include the invoice creation logic of the estate property. This way the real estate and the accounting modules can be installed independently. When both are installed, the link module provides the new feature.
+
+> ```python
+> from odoo import models
+>
+> class InheritedModel(models.Model):
+>    _inherit = "inherited.model"
+>
+>    def inherited_action(self):
+>        return super().inherited_action()
+> ```
+
+> ```python
+> from odoo import Command
+>
+> def inherited_action(self):
+>    self.env["test.model"].create(
+>        {
+>            "name": "Test",
+>            "line_ids": [
+>                Command.create({
+>                    "field_1": "value_1",
+>                    "field_2": "value_2",
+>                })
+>            ],
+>        }
+>    )
+>    return super().inherited_action()
+> ```
+
 #### _This Documentation was created by Ali Dandan with the help of Github Copilot._
