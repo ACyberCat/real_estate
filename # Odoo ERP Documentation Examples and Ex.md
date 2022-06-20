@@ -501,9 +501,199 @@ The method that is decorated with `constraints()` is expected to raise an except
 ---
 
 ## Chapter 12: Add The Sprinkles
+
 This chapter covers a very small subset of what can be done in the views. Do not hesitate to read the reference documentation for a more complete overview.
 
 ### Inline Views:
 
+In the real estate module we added a list of offers for a property. We simply added the field `offer_ids` with:
+
+> ```xml
+> <field name="offer_ids"/>
+> ```
+
+The field uses the specific view for `estate.property.offer`.
+
+We would like to display the list of properties linked to a property type. However, we only want to display 3 fields for clarity: name, expected price and state.
+
+To do this, we can define inline list views. An inline list view is defined directly inside a form view. For example:
+
+> ```python
+> from odoo import fields, models
+>
+> class TestModel(models.Model):
+>    _name = "test.model"
+>    _description = "Test Model"
+>
+>    description = fields.Char()
+>    line_ids = fields.One2many("test.model.line", "model_id")
+>
+>
+> class TestModelLine(models.Model):
+>    _name = "test.model.line"
+>    _description = "Test Model Line"
+>
+>    model_id = fields.Many2one("test.model")
+>    field_1 = fields.Char()
+>    field_2 = fields.Char()
+>    field_3 = fields.Char()
+> ```
+
+And to follow that in the XML View as:
+
+> ```xml
+> <form>
+>    <field name="description"/>
+>    <field name="line_ids">
+>        <tree>
+>            <field name="field_1"/>
+>            <field name="field_2"/>
+>        </tree>
+>    </field>
+> </form>
+> ```
+
+In the form view of the `test.model`, we define a specific list view for `test.model.line` with fields `field_1` and `field_2`.
+
+### Widgets:
+
+In some cases, we want a specific representation of a field which can be done thanks to the widget attribute:
+
+> ```xml
+> <field name="state" widget="statusbar" statusbar_visible="open,posted,confirm"/>
+> ```
+
+### List Order:
+
+Example:
+
+> ```python
+> _order = "id desc"
+> ```
+
+### Manual Order:
+
+To do so, a `sequence` field is used in combination with the `handle` widget. Obviously the `sequence` field must be the first field in the `_order` attribute.
+
+### Field Attributes and Options:
+
+Example:
+
+> ```xml
+> <form>
+>    <field name="description" attrs="{'invisible': [('is_partner', '=', False)]}"/>
+>    <field name="is_partner" invisible="1"/>
+> </form>
+> ```
+
+### List Decoration:
+
+Example:
+
+> ```xml
+> <tree decoration-success="is_partner==True">
+>    <field name="name">
+>    <field name="is_partner" invisible="1">
+> </tree>
+> ```
+
+### Search Attributes:
+
+Example:
+
+> ```xml
+> <search string="Test">
+>    <field name="description" string="Name and description"
+>           filter_domain="['|', ('name', 'ilike', self), ('description', 'ilike', self)]"/>
+> </search>
+> ```
+
+### Stat Buttons:
+
+The easiest way to understand it is to consider it as a specific case of a computed field. The following definition of the description field:
+
+> ```python
+> ...
+>
+> partner_id = fields.Many2one("res.partner", string="Partner")
+> description = fields.Char(related="partner_id.name")
+> ```
+
+is equivalent to:
+
+> ```python
+> ...
+>
+> partner_id = fields.Many2one("res.partner", string="Partner")
+> description = fields.Char(compute="_compute_description")
+>
+> @api.depends("partner_id.name")
+> def _compute_description(self):
+>    for record in self:
+>        record.description = record.partner_id.name
+> ```
+
+---
+
+## Chapter 13: Inheritance
+
+A powerful aspect of Odoo is its modularity. A module is dedicated to a business need, but modules can also interact with one another. This is useful for extending the functionality of an existing module.
+
+### Python Inheritance
+
+The Odoo framework provides the necessary tools to do them. In fact, such actions are already included in our model thanks to classical Python inheritance:
+
+> ```python
+> from odoo import fields, models
+>
+> class TestModel(models.Model):
+>    _name = "test.model"
+>    _description = "Test Model"
+>
+>    ...
+> ```
+
+Our class `TestModel` inherits from `Model` which provides `create()`, `read()`, `write()` and `unlink()`.
+
+These methods (and any other method defined on `Model`) can be extended to add specific business logic:
+
+> ```python
+> from odoo import fields, models
+>
+> class TestModel(models.Model):
+>    _name = "test.model"
+>    _description = "Test Model"
+>
+>    ...
+>
+>    @api.model
+>    def create(self, vals):
+>        # Do some business logic, modify vals...
+>        ...
+>        # Then call super to execute the parent method
+>        return super().create(vals)
+> ```
+
+The decorator `model()` is necessary for the `create()` method because the content of the recordset `self` is not relevant in the context of creation, but it is not necessary for the other CRUD methods.
+
+###### _note: even though we can directly override the `unlink()` method, you will almost always want to write a new method with the decorator `ondelete()` instead. Methods marked with this decorator will be called during `unlink()` and avoids some issues that can occur during uninstalling the model’s module when `unlink()` is directly overridden._
+
+> #### It is very important to always call super() to avoid breaking the flow. There are only a few very specific cases where you don’t want to call it.
+>
+> #### Make sure to always return data consistent with the parent method. For example, if the parent method returns a dict(), your override must also return a dict().
+
+### Model Inheritance
+
+![inheritance](https://www.odoo.com/documentation/15.0/_images/inheritance_methods.png)
+In Odoo, the first mechanism is by far the most used. In our case, we want to add a field to an existing model, which means we will use the first mechanism. For example:
+
+> ```python
+> from odoo import fields, models
+>
+> class InheritedModel(models.Model):
+>    _inherit = "inherited.model"
+>
+>    new_field = fields.Char(string="New Field")
+> ```
 
 #### _This Documentation was created by Ali Dandan with the help of Github Copilot._
