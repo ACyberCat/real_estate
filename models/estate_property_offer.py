@@ -46,7 +46,8 @@ class EstatePropertyOffer(models.Model):
             if (record.property_id.state != 'cancelled'
                     and record.property_id.state != 'sold'):
                 record.status = 'accepted'
-                record.action_sell()
+                record.property_id.state = 'sold'
+                record.property_id.action_sell()
                 record.property_id.buyer_id = record.partner_id
                 record.property_id.selling_price = record.price
             else:

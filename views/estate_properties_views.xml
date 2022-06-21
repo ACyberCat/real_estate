@@ -162,10 +162,12 @@
                 <field name="state" />
                 <templates>
                     <t t-name="kanban-box">
-                        <div class="oe_kanban_global_click">
+                        <div t-attf-class="oe_kanban_global_click oe_kanban_color_#{kanban_getcolor(record.state.value)}">
                             <div>
-                                <strong class="o_kanban_record_title">
+                                <strong class="o_kanban_record_title" style="font-weight:bold;">
                                     <field name="name" />
+                                    | Status:
+                                    <field name="state" />
                                 </strong>
                             </div>
                             <div>
