@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 
 # create a new model estate.property.offer
 class EstatePropertyOffer(models.Model):
+    # ---------------------------------------- Private Attributes -------------
     # database table name
     _name = "estate.property.offer"
     # description of the model
@@ -18,6 +19,7 @@ class EstatePropertyOffer(models.Model):
          'The offer price must be positive!'),
     ]
 
+    # --------------------------------------- Fields Declaration --------------
     # fields of the model
     price = fields.Float(required=True)
     # manytoone relationship with res.partner
@@ -39,6 +41,7 @@ class EstatePropertyOffer(models.Model):
     date_deadline = fields.Date(string='Deadline', compute="_compute_deadline",
                                 inverse="_inverse_deadline")
 
+    # ---------------------------------------- Action Methods -----------------
     # accepting an offer and checking if the property is available
     # if it is, the property is sold to the buyer
     def action_accept(self):
@@ -60,19 +63,14 @@ class EstatePropertyOffer(models.Model):
     # rejecting an offer and checking if the property is available
     def action_refuse(self):
         for record in self:
-            if (record.property_id.state != 'cancelled'
-                    and record.property_id.state != 'sold'):
+            if (record.property_id.state != 'sold'):
                 record.status = 'refused'
                 record.property_id.state = 'offer recieved'
                 record.property_id.buyer_id = False
                 record.property_id.selling_price = 0
-            else:
-                raise exceptions.ValidationError(
-                    "This property is cancelled or sold. "
-                    "You can't refuse an offer "
-                    "for a cancelled or a sold property.")
         return True
 
+    # --------------------------------------- Compute Methods ----------------
     @api.depends("validity", "date_deadline")
     # computing the deadline of the offer
     def _compute_deadline(self):

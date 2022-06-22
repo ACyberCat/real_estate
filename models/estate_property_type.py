@@ -3,6 +3,7 @@ from odoo import fields, models, api
 
 # create a new model estate.property.type
 class RealEstatePropertyType(models.Model):
+    # ---------------------------------------- Private Attributes -------------
     # database table name
     _name = "estate.property.type"
     # description of the model
@@ -10,6 +11,7 @@ class RealEstatePropertyType(models.Model):
     # order of viewing the records
     _order = "name desc"
 
+    # --------------------------------------- Fields Declaration --------------
     # fields of the model
     name = fields.Char(required=True)
     # manytoone relationship with estate.properties
@@ -24,6 +26,7 @@ class RealEstatePropertyType(models.Model):
                                  compute='_compute_offer_count')
     sequence = fields.Integer(string='Sequence', default=10)
 
+    # ---------------------------------------- Compute Methods ---------------
     @api.depends('offer_ids')
     # compute field to get the number of properties of a type
     def _compute_offer_count(self):

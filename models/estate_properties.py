@@ -1,12 +1,15 @@
 from odoo import exceptions, api, fields, models
 from dateutil.relativedelta import relativedelta
 
+
+# ---------------------------------------- Default Methods --------------------
 # calculate the default value of date_availability
 three_months = fields.Date.today() + relativedelta(months=+3)
 
 
 # create a new model estate.properties
 class RealEstateProperties(models.Model):
+    # ---------------------------------------- Private Attributes -------------
     # database table name
     _name = "estate.properties"
     # description of the model
@@ -24,6 +27,7 @@ class RealEstateProperties(models.Model):
         ('area_positive', 'CHECK(area < 0)', 'The area must be positive!'),
     ]
 
+    # --------------------------------------- Fields Declaration --------------
     # fields of the model
     name = fields.Char(required=True)
     active = fields.Boolean(default=True)
@@ -72,6 +76,7 @@ class RealEstateProperties(models.Model):
     property_offer_ids = fields.One2many('estate.property.offer',
                                          'property_id', string="Offers")
 
+    # ---------------------------------------- Compute methods ----------------
     @api.onchange('property_offer_ids')
     def _onchange_property_offer_ids(self):
         if self.state == 'new' and len(self.property_offer_ids) > 0:
@@ -104,6 +109,7 @@ class RealEstateProperties(models.Model):
             else:
                 record.best_offer = 0
 
+    # ---------------------------------------- Action Methods -----------------
     # cancel the property
     def action_cancel(self):
         if self.state != "sold":
@@ -124,6 +130,7 @@ class RealEstateProperties(models.Model):
                 record.buyer_id = self.env.user.partner_id
         return True
 
+    # ----------------------------------- Constrains and Onchanges ------------
     @api.constrains('selling_price', 'expected_price')
     # check if the selling price is greater than the expected price
     def _check_price(self):
@@ -142,9 +149,9 @@ class RealEstateProperties(models.Model):
             else:
                 return super().create()
 
-        # @api.ondelete(at_uninstall=False)
-        # def unlink(self):
-        #     if self.state != 'new' and self.state != 'cancelled':
-        #         raise exceptions.UserError(
-        #             "Cannot delete a property that is not new or cancelled")
-        #     return super().unlink()
+    # ------------------------------------------ CRUD Methods -----------------
+    def unlink(self):
+        if self.state != 'new' and self.state != 'cancelled':
+            raise exceptions.UserError(
+                "Cannot delete a property that is not new or cancelled")
+        return super().unlink()
