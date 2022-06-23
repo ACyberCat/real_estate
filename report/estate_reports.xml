@@ -28,6 +28,9 @@
             <t t-call="web.html_container">
                 <t t-call="web.external_layout">
                     <div class="page">
+                        <div>
+                            <img t-att-src="'data:image/png;base64,%s' % to_text(salesman.image_1920)"></img>
+                        </div>
                         <h2>
                             <strong>Salesman: </strong>
                             <span t-field="salesman.name" />
@@ -39,6 +42,7 @@
                                     <span t-field="property.name" />
                                 </h3>
                                 <t t-call="real_estate.property_and_its_offers" />
+                                <hr />
                             </t>
                         </t>
                         <t t-else="" class="text-center" t-attf-style="display: -webkit-box; -webkit-box-pack: center; -webkit-box-orient: vertical;">
@@ -66,6 +70,9 @@
             <div>
                 <strong>Status: </strong>
                 <span t-field="property.state" />
+            </div>
+            <div t-if="property.state == 'sold'">
+                <strong>Invoice has been already created for this property.</strong>
             </div>
             <table class="table" t-if="property.property_offer_ids">
                 <thead>

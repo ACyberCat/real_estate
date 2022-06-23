@@ -784,4 +784,247 @@ The common approach for such use cases is to create a ‘link’ module. In our 
 >    return super().inherited_action()
 > ```
 
-#### _This Documentation was created by Ali Dandan with the help of Github Copilot._
+---
+
+## Advanced C: Master and Demo Data
+
+**Master Data** is technical data that data that must be created on install of the module that is often necessary for the module to work properly.
+**Demo Data**, on the other hand, is data that is initialized on install and is used for demonstration purposes.
+
+> Demo data is automatically loaded when you start the server if you don’t explicitly say you don’t want it. This can be done in the database manager or with the command line.
+> `$ ./odoo-bin --addons-path=... -d db -i account --without-demo=all`
+
+###### For convention purpouses, the name of the demo data folder is `demo` and the name of the master data folder is `data`, and the location and name of each file must be declared in the `__manifest__.xml` file.
+
+### Data Entry Methods:
+
+> - #### CSV:
+>
+> > The easiest way to declare simple data is by using the CSV format. This is however limited in terms of features: use it for long lists of simple models.
+> >
+> > ````csv
+> >    id,field_a,field_b,related_id:id
+> >    id1,valueA1,valueB1,module.relatedid
+> >    id2,valueA2,valueB2,module.relatedid```
+> > ````
+>
+> - #### XML:
+>
+> > The XML format is the most flexible way to declare data. It is also the most complex, but it is also the most powerful.
+> >
+> > ````xml
+> > <odoo>
+> >  <record id="id1" model="tutorial.example">
+> >    <field name="field_a">valueA1</field>
+> >    <field name="field_b">valueB1</field>
+> >  </record>
+> >
+> >  <record id="id2" model="tutorial.example">
+> >    <field name="field_a">valueA2</field>
+> >    <field name="field_b">valueB2</field>
+> >  </record>
+> > </odoo>```
+> > ````
+> >
+> > - For example, you can create records for the types of properties in the **`real-estate`** module using **CSV** but creating records for the properties themselves and adding offers to each property must be done using **XML**.
+> >
+> > ##### Ref:
+> >
+> > Related fields can be set using the `ref` key. The value of that key is the `xml_id` of the record you want to link. Remember the `xml_id` is composed of the name of the module where the data is first declared, followed by a dot, followed by the id of the record .
+> >
+> > ```xml
+> > <odoo>
+> >   <record id="id1" model="tutorial.example">
+> >     <field name="related_id" ref="module.relatedid"/>
+> >   </record>
+> > </odoo>
+> > ```
+> >
+> > ##### eval:
+> >
+> > `eval` is used to compute values and it can also be used to optimize the insertion of related values, or because a constraint forces you to add the related values in batch.
+> >
+> > ```xml
+> > <odoo>
+> >  <record id="id1" model="tutorial.example">
+> >    <field name="year" eval="datetime.now().year+1"/>
+> >  </record>
+> > </odoo>
+> > ```
+> >
+> > ##### function:
+> >
+> > You might also need to execute python code when loading data.
+> >
+> > ```xml
+> > <function model="tutorial.example" name="action_validate">
+> >    <value eval="[ref('demo_invoice_1')]"/>
+> > </function>
+> > ```
+
+---
+
+## QWeb Templates
+
+QWeb is the primary templating engine used by Odoo. It is an XML templating engine and used mostly to generate HTML fragments and pages.
+
+Template directives are specified as XML attributes prefixed with `t-`, for instance `t-if` for Conditionals, with elements and other attributes being rendered directly.
+
+Clearest explanation of QWeb Templates can be found [here](https://www.odoo.com/documentation/15.0/developer/reference/frontend/qweb.html)
+
+https://www.odoo.com/documentation/15.0/developer/reference/frontend/qweb.html
+
+---
+
+## Advanced J: PDF Reports
+
+Now we will expand on one of QWeb’s other main uses: creating PDF reports. A common business requirement is the ability to create documents to send to customers and to use internally. These reports can be used to summarize and display information in an organized template to support the business in different ways.
+
+###### For convention purposes, the name of the report folder is `report` and the location and name of each file must be declared in the `__manifest__.xml` file.
+
+### Report Templates
+
+We can create templates for the report to specify the format required by the user for the exported report in order to see the result he wants. A Report Template is required to define the fields that will be displayed in the report in the format that the user wants.
+
+#### Start off with a sample template
+
+> ```xml
+> <?xml version="1.0" encoding="UTF-8" ?>
+> <odoo>
+>    <template id="report_property_offers">
+>        <t t-foreach="docs" t-as="property">
+>            <t t-call="web.html_container">
+>                <t t-call="web.external_layout">
+>                    <div class="page">
+>                        <h2>
+>                            <span t-field="property.name"/>
+>                        </h2>
+>                        <div>
+>                            <strong>Expected Price: </strong>
+>                            <span t-field="property.expected_price"/>
+>                        </div>
+>                        <table class="table">
+>                            <thead>
+>                                <tr>
+>                                    <th>Price</th>
+>                                </tr>
+>                            </thead>
+>                            <tbody>
+>                                <t t-set="offers" t-value="property.mapped('offer_ids')"/>
+>                                <tr t-foreach="offers" t-as="offer">
+>                                    <td>
+>                                        <span t-field="offer.price"/>
+>                                    </td>
+>                                </tr>
+>                            </tbody>
+>                        </table>
+>                    </div>
+>                </t>
+>            </t>
+>        </t>
+>    </template>
+> </odoo>
+> ```
+>
+> ###### The use of **`t-set`**, **`t-value`**, **`t-foreach`** and **`t-as`** so that we can loop over all of the **`offer_ids`**.
+
+### Report Action
+
+Now that we have a template, we need to make it accessible in our app via a `ir.actions.report`. An `ir.actions.report` is primarily used via the Print menu of a model’s view. In the practical example, the `binding_model_id` specifies which model’s views the report should show in and Odoo will auto-magically add it for you.
+
+```xml
+ <action model="ir.actions.report" name="report_property_offers" binding_model_id="tutorial.example"/>
+```
+
+### Sub-Templates
+
+Sometimes you have to make multiple templates for the same report. For example, you might have a template for the header and footer of the report, and a template for the body of the report. And you might have multiple reports sharing the same header and footer or the same set of data. For that we can utilize sub-templates.
+
+> ###### Sub-templates are separate templates that are not callable as a report by themselves but are callable using the function `t-call` to be implemented in an actual report.
+
+> ##### A quick Sub-Report I made is this example:
+>
+> > ```xml
+> >    <template id="property_and_its_offers">
+> >        <div class="page">
+> >            <div t-if="who == 'salesman'">
+> >                <h3>
+> >                    <span t-field="property.name" />
+> >                </h3>
+> >            </div>
+> >            <div>
+> >                <strong>Expected Price: </strong>
+> >                <span t-field="property.expected_price" />
+> >                $
+> >            </div>
+> >            <div>
+> >                <strong>Status: </strong>
+> >                <span t-field="property.state" />
+> >            </div>
+> >            <table class="table" t-if="property.property_offer_ids">
+> >                <thead>
+> >                    <tr>
+> >                        <th>Price</th>
+> >                        <th>Partner Name</th>
+> >                        <th>Validity(days)</th>
+> >                        <th>Offer Deadline</th>
+> >                        <th>State</th>
+> >                    </tr>
+> >                </thead>
+> >                <tbody>
+> >                    <t t-set="offers" t-value="property.mapped('property_offer_ids')" />
+> >                    <tr t-foreach="offers" t-as="offer">
+> >                        <td>
+> >                            <span t-field="offer.price" />
+> >                        </td>
+> >                        <td>
+> >                            <span t-field="offer.partner_name" />
+> >                        </td>
+> >                        <td>
+> >                            <span t-field="offer.validity" />
+> >                        </td>
+> >                        <td>
+> >                            <span t-field="offer.date_deadline" />
+> >                        </td>
+> >                        <td>
+> >                            <span t-field="offer.status" />
+> >                        </td>
+> >                    </tr>
+> >                </tbody>
+> >            </table>
+> >            <table t-else="">
+> >                <div class="text-center" t-attf-style="display: -webkit-box; -webkit-box-pack: center; -webkit-box-orient: vertical;">
+> >                    <h4 style="color: gray;">No offers have been made yet :(</h4>
+> >                </div>
+> >            </table>
+> >        </div>
+> >    </template>
+> > </odoo>
+> > ```
+
+### Report Inheritance
+
+Inheritance in QWeb uses the same xpath elements as views inheritance. A QWeb template refers to its parent template in a different way though. It is even easier to do by just adding the `inherit_id` attribute to the template element and setting it equal to the `module.parent_template_id`.
+
+> For example, we know that any “Sold” properties will already have an invoice created for them, so we can add this information to our report.
+>
+> ##### We can do this by adding the following to our template:
+>
+> > ```xml
+> > <div t-if="property.state == 'sold'">
+> >    <strong>Invoice has been already created for this property.</strong>
+> > </div>
+> > ```
+
+### Additional Features
+
+- #### Translations
+  > We all know Odoo is used in multiple languages thanks to automated and manual translating. QWeb reports are no exception!
+- #### Reports as webpages
+  > One of the neat features about reports being written in QWeb is they can be viewed within the web browser. This can be useful if you want to embed a hyperlink that leads to a specific report.
+- #### Barcodes
+  > Odoo has a built-in barcode image creator that allows for barcodes to be embedded in your reports.
+
+---
+
+###### _This Documentation was created by Ali Dandan with the help of Github Copilot._
