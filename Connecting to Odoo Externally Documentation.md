@@ -211,7 +211,7 @@ module_name
 >         return {"sample_dictionary": "This is a sample JSON dictionary"}
 > ```
 >
-> ###### _Note: A controller must inherit from `http.Controller`. Each time you define a method with `@http.route()` it defines a url to match. As example, the `some_html()` method will be called a client query the `/my_url/some_html` url._
+> ###### _**Note**: A controller must inherit from `http.Controller`. Each time you define a method with `@http.route()` it defines a url to match. As example, the `some_html()` method will be called a client query the `/my_url/some_html` url._
 
 ---
 
@@ -246,7 +246,7 @@ fetch("http://localhost:8069/my_url/some_html")
 
 #### Odoo's `env` supports a variety of methods to get data from Odoo, including
 
-**- `env.search(params)`: Search for records in Odoo**
+- **`env.search(params)`: Search for records in Odoo**
   >
   > - `params` is a dictionary with the following keys used to filter the search:
   > - `domain`: A list of domain expressions
@@ -256,49 +256,177 @@ fetch("http://localhost:8069/my_url/some_html")
   > - `order`: List of fields to order the result by
   > - `context`: Context to use when searching for records
   >
-**- `env.search_count(params)`: Count the number of records in Odoo**
+  > ##### Example
+  >
+  > ```python
+  >    # return json array of properties
+  >  @http.route("/my_url/some_html", type="http")
+  >  def some_html(self):
+  >      jason = '{"property names" : ['
+  >      estate_properties = http.request.env["estate.properties"]
+  >      property_ids = estate_properties.search([])
+  >      for propertee in property_ids:
+  >          _logger.info(propertee.name)
+  >          if jason != '{"property names" : [':
+  >              jason += ", "
+  >          jason += '"' + propertee.name + '"'
+  >          _logger.info(jason)
+  >      jason += "]}"
+  >      json.dumps(jason)
+  >      _logger.info(jason)
+  >      return jason
+  > ```
+  >
+- **`env.search_count(params)`: Count the number of records in Odoo**
   >
   > - `params` is a dictionary with the following keys used to filter the search:
   > - `domain`: A list of domain expressions
   > - `context`: Context to use when searching for records
   >
-**- `env.browse(ids)`: Get the records with the given ids**
+- **`env.browse(ids)`: Get the records with the given ids**
   >
   > - `ids` is a list of ids to get the records from Odoo
   >
-**- `env.create(params)`: Create a record in Odoo**
+- **`env.create(params)`: Create a record in Odoo**
   >
   > - `params` is a dictionary with the following keys used to create the record:
   > - `values`: A dictionary with the values to create the record with
   >
-**- `env.write(params)`: Update a record in Odoo**
+  > ##### Example
   >
+  > ```python
+  >    # create new property
+  >  @http.route("/my_url/create_property", type="http")
+  >  def create_property(self):
+  >      jason = '{"create" : '
+  >      estate_properties = http.request.env["estate.properties"]
+  >      property_ids = estate_properties.search([("name", "=", "Small Villa")])
+  >      if property_ids.exists():
+  >          jason += "false"
+  >      else:
+  >          estate_properties.create(
+  >              {
+  >                  "name": "Small Villa",
+  >                  "expected_price": "15000",
+  >                  "property_type_id": "2",
+  >              }
+  >          )
+  >          jason += "true"
+  >      jason += "}"
+  >      json.dumps(jason)
+  >      _logger.info(jason)
+  >      return jason
+  > ```
+  >
+- **`env.write(params)`: Update a record in Odoo**
+
   > - `params` is a dictionary with the following keys used to update the record:
   > - `id`: The id of the record to update
   > - `values`: A dictionary with the values to update the record with
-
-**- `env.unlink(params)`: Delete a record in Odoo**
   >
+  > ##### Example
+  >
+  > ```python
+  >    # update property
+  >  @http.route("/my_url/update_property", type="http")
+  >  def update_property(self):
+  >      jason = '{"update" : '
+  >      estate_properties = http.request.env["estate.properties"]
+  >      property_ids = estate_properties.search([("name", "=", "Small Villa")])
+  >      if property_ids.exists():
+  >          property_ids.write({"expected_price": "20000"})
+  >          jason += "true"
+  >      else:
+  >          jason += "false"
+  >      jason += "}"
+  >      json.dumps(jason)
+  >      _logger.info(jason)
+  >      return jason
+  > ```
+
+- **`env.unlink(params)`: Delete a record in Odoo**
+
   > - `params` is a dictionary with the following keys used to delete the record:
   > - `id`: The id of the record to delete
+  >
+  > ##### Example
+  >
+  > ```python
+  >    # delete property
+  >  @http.route("/my_url/delete_property", type="http")
+  >  def delete_property(self):
+  >      jason = '{"delete" : '
+  >      estate_properties = http.request.env["estate.properties"]
+  >      property_ids = estate_properties.search([("name", "=", "Small Villa")])
+  >      if property_ids.exists():
+  >          property_ids.unlink()
+  >          jason += "true"
+  >      else:
+  >          jason += "false"
+  >      jason += "}"
+  >      json.dumps(jason)
+  >      _logger.info(jason)
+  >      return jason
+  > ```
 
-**- `env.exists()`: Check if a record exists in Odoo**
-**- `env.copy()`: Copy a record in Odoo**
-**- `env.default_get()`: Get the default values of a record in Odoo**
-**- `env.name_get()`: Get the names of the records in Odoo**
-**- `env.name_search()`: Search for records in Odoo**
+- **`env.exists()`: Check if a record exists in Odoo**
+
+  > ##### Example
+  >
+  > ```python
+  >  # exists method
+  >  @http.route("/my_url/another_html", type="http")
+  >  def another_html(self):
+  >      jason = '{"exists" : '
+  >      estate_properties = http.request.env["estate.properties"]
+  >      property_ids = estate_properties.search([("name", "=", "Big Villa")])
+  >      if property_ids.exists():
+  >          jason += "true"
+  >      else:
+  >          jason += "false"
+  >      jason += "}"
+  >      json.dumps(jason)
+  >      _logger.info(jason)
+  >      return jason
+  > ```
+
+- **`env.copy()`: Copy a record in Odoo**
+
+  > ##### Example
+  >
+  > ```python
+  >    # duplicate property
+  >  @http.route("/my_url/duplicate_property", type="http")
+  >  def duplicate_property(self):
+  >      jason = '{"duplicate" : '
+  >      estate_properties = http.request.env["estate.properties"]
+  >      property_ids = estate_properties.search([("name", "=", "Small Villa")])
+  >      if property_ids.exists():
+  >          property_ids.copy()
+  >          jason += "true"
+  >      else:
+  >          jason += "false"
+  >      jason += "}"
+  >      json.dumps(jason)
+  >      _logger.info(jason)
+  >      return jason
+  > ```
+
+- **`env.default_get()`: Get the default values of a record in Odoo**
+- **`env.name_get()`: Get the names of the records in Odoo**
+- **`env.name_search()`: Search for records in Odoo**
   >
   > - `params` is a dictionary with the following keys used to search for records:
   > - `name`: The name to search for
   > - `args`: A list of domain expressions
   > - `operator`: The operator to use for the search
   > - `limit`: Maximum number of records to return
-  >
+
 ---
 
 ## JSON Format for Data Transfer
 
-###### _Note: As the data is being passed through an http or a json Get and POST call, the data must be in JSON format to be transferred and can be created manually or using a library to do so._
+###### _**`Note:`** As the data is being passed through an `http` or `JSON` `GET` and `POST` calls, the data must be in `JSON` format to be transferred and can be created manually or using a library to do so._
 
 #### This results in the method that creates the JSON format Data to be passed looking as follows
 
@@ -335,11 +463,7 @@ class MyController(http.Controller):
 
 ```json
 {
-    "property names" : [
-        "Property 1",
-        "Property 2",
-        "Property 3"
-    ]
+  "property names": ["Property 1", "Property 2", "Property 3"]
 }
 ```
 
@@ -347,4 +471,68 @@ class MyController(http.Controller):
 
 ---
 
-###### This documentation was created by Ali Dandan with help of Github's Copilot
+### Recieveing Data from Odoo using POST requests
+
+_Even though we can set and call hosted methods from Odoo's WEB Controller, we can also receive data from Odoo using POST requests. These requests are sent to the Odoo server and the server recieves the data in JSON format._
+
+- **The Web Controller function listens for a POST request from the client and then calls the method that is specified in the URL.**
+
+  > ##### Example
+  >
+  > ```python
+  >    # post request reciever
+  >    @http.route("/my_url/post_request", type="json", auth="public", methods=["POST"])
+  >    def post_request(self, **kwargs):
+  >        _logger.info(http.request.params)
+  >        result = (http.request.params)
+  >        _logger.info(result['name'])
+  >        jason = '{"create" : '
+  >        estate_properties = http.request.env["estate.properties"]
+  >        property_ids = estate_properties.search([("name", "=", result['name'])])
+  >        if property_ids.exists():
+  >            jason += "false"
+  >        else:
+  >            estate_properties.create(
+  >                result
+  >            )
+  >            jason += "true"
+  >        jason += "}"
+  >        json.dumps(jason)
+  >        _logger.info(jason)
+  >        return {"success": True, "status": "OK", "code": 200}
+  > ```
+  >
+- The Caller method will send the data in the JSON format where the data is sent as a dictionary.
+
+  > ##### Example
+  >
+  > ```JS
+  >  post(name, expected_price, property_type_id) {
+  >    var myHeaders = new Headers();
+  >    myHeaders.append("Content-Type", "application/json");
+  >
+  >    var raw = JSON.stringify({
+  >      params: {
+  >        name: name,
+  >        expected_price: expected_price,
+  >        property_type_id: property_type_id,
+  >      },
+  >    });
+  >
+  >    var requestOptions = {
+  >      method: "POST",
+  >      headers: myHeaders,
+  >      body: raw,
+  >      redirect: "follow",
+  >    };
+  >
+  >    fetch("http://localhost:8069/my_url/post_request", requestOptions)
+  >      .then((response) => response.text())
+  >      .then((result) => console.log(result))
+  >      .catch((error) => console.log("error", error));
+  >  }
+  > ```
+
+---
+
+###### _This documentation was created by Ali Dandan with the help of Github Copilot._

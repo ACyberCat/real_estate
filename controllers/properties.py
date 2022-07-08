@@ -1,3 +1,5 @@
+from cgitb import reset
+import re
 from odoo import http
 from odoo.http import request
 import json
@@ -131,6 +133,21 @@ class MyController(http.Controller):
     @http.route("/my_url/post_request", type="json", auth="public", methods=["POST"])
     def post_request(self, **kwargs):
         _logger.info(http.request.params)
+        result = (http.request.params)
+        _logger.info(result['name'])
+        jason = '{"create" : '
+        estate_properties = http.request.env["estate.properties"]
+        property_ids = estate_properties.search([("name", "=", result['name'])])
+        if property_ids.exists():
+            jason += "false"
+        else:
+            estate_properties.create(
+                result
+            )
+            jason += "true"
+        jason += "}"
+        json.dumps(jason)
+        _logger.info(jason)
         return {"success": True, "status": "OK", "code": 200}
 
     @http.route("/my_url/some_json", type="json")
