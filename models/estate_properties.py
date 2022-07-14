@@ -30,6 +30,7 @@ class RealEstateProperties(models.Model):
     # --------------------------------------- Fields Declaration --------------
     # fields of the model
     name = fields.Char(required=True)
+    filter_domain = fields.Char(string='Apply on', help="If present, this condition must be satisfied before executing the action rule.")
     active = fields.Boolean(default=True)
     description = fields.Text()
     postcode = fields.Char()

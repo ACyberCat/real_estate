@@ -5,6 +5,7 @@
     'summary': 'Yes this is an app',
     'depends': [
         'base',
+        'jsonifier',
     ],
     'data': [
         'data/estate.property.type.csv',
