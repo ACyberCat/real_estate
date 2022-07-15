@@ -16,5 +16,5 @@ class EstatePropertyTag(models.Model):
     name = fields.Char(required=True)
     color = fields.Integer(string='color')
     # manytoone relationship with estate.properties
-    property_ids = fields.Many2many('estate.properties', 'property_tag_id',
+    property_ids = fields.Many2many('estate.properties', 'property_tag_ids',
                                     string='Properties')

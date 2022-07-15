@@ -50,6 +50,7 @@
                     <field name="state" widget="statusbar" statusbar_visible="cancelled" attrs="{'invisible': [('state', '!=', 'cancelled')]}" />
                 </header>
                 <sheet>
+                    <field name="model_id" options="{'no_create': True}" />
                     <field name="filter_domain" widget="domain" options="{'model': 'estate.properties', 'in_dialog': True}" />
                     <h1>
                         <field name="name" />

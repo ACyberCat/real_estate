@@ -1,3 +1,4 @@
+from email.policy import default
 from odoo import exceptions, api, fields, models
 from dateutil.relativedelta import relativedelta
 
@@ -29,6 +30,7 @@ class RealEstateProperties(models.Model):
 
     # --------------------------------------- Fields Declaration --------------
     # fields of the model
+    model_id = fields.Many2one('ir.model', string='Model')
     name = fields.Char(required=True)
     filter_domain = fields.Char(string='Apply on', help="If present, this condition must be satisfied before executing the action rule.")
     active = fields.Boolean(default=True)
