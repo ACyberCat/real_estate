@@ -151,10 +151,3 @@ class RealEstateProperties(models.Model):
                     "Offer price must be greater than the best offer")
             else:
                 return super().create()
-
-    # ------------------------------------------ CRUD Methods -----------------
-    def unlink(self):
-        if self.state != 'new' and self.state != 'cancelled':
-            raise exceptions.UserError(
-                "Cannot delete a property that is not new or cancelled")
-        return super().unlink()
